@@ -13,35 +13,139 @@ import com.scms.util.DatabaseConnection;
 public class DepartmentDAO {
 
 	public boolean save(Department department) {
-		String sql = "INSERT INTO departments(department_name, department_code) VALUES (?, ?)";
-		try (
-				Connection connection = DatabaseConnection.getConnection();
-		
-		        PreparedStatement ps = connection.prepareStatement(sql);
-		){
-			ps.setString(1, department.getDepartmentName());
-			
-			ps.setString(2, department.getDepartmentCode());
-			
-			int rows = ps.executeUpdate();
-			
-			return rows>0;
-		}
-		
-		catch (SQLException e) {
-			 throw new DuplicateDepartmentException("Department code already exists.");
+
+	    String sql =
+	            "INSERT INTO departments(department_name,department_code) VALUES(?,?)";
+
+	    try (
+
+	            Connection connection =
+	                    DatabaseConnection.getConnection();
+
+	            PreparedStatement ps =
+	                    connection.prepareStatement(sql);
+
+	    ) {
+
+	        ps.setString(1,
+	                department.getDepartmentName());
+
+	        ps.setString(2,
+	                department.getDepartmentCode());
+
+	        int rows =
+	                ps.executeUpdate();
+
+	        return rows > 0;
+
 	    }
+
+	    catch (Exception e) {
+
+	        e.printStackTrace();
+
+	    }
+
+	    return false;
+
+	}
+	
+	public boolean existsByCode(String code) {
+
+	    String sql =
+	            "SELECT * FROM departments WHERE department_code=?";
+
+	    try (
+
+	            Connection connection =
+	                    DatabaseConnection.getConnection();
+
+	            PreparedStatement ps =
+	                    connection.prepareStatement(sql);
+
+	    ) {
+
+	        ps.setString(1, code);
+
+	        ResultSet rs =
+	                ps.executeQuery();
+
+	        return rs.next();
+
+	    }
+
+	    catch (Exception e) {
+
+	        e.printStackTrace();
+
+	    }
+
+	    return false;
+
+	}
+	
+	public Department findById(int id) {
+
+	    String sql =
+	            "SELECT * FROM departments WHERE department_id=?";
+
+	    try (
+
+	            Connection connection =
+	                    DatabaseConnection.getConnection();
+
+	            PreparedStatement ps =
+	                    connection.prepareStatement(sql);
+
+	    ) {
+
+	        ps.setInt(1, id);
+
+	        ResultSet rs =
+	                ps.executeQuery();
+
+	        if (rs.next()) {
+
+	            Department department =
+	                    new Department();
+
+	            department.setDepartmentId(
+	                    rs.getInt("department_id"));
+
+	            department.setDepartmentName(
+	                    rs.getString("department_name"));
+
+	            department.setDepartmentCode(
+	                    rs.getString("department_code"));
+
+	            return department;
+
+	        }
+
+	    }
+
+	    catch (Exception e) {
+
+	        e.printStackTrace();
+
+	    }
+
+	    return null;
+
 	}
 	
 	public List<Department> findAll() {
-	    String sql = "SELECT department_id, department_name, department_code FROM departments";
+
 	    List<Department> departments = new ArrayList<>();
+
+	    String sql = "SELECT * FROM departments ORDER BY department_name";
+
 	    try (
 	            Connection connection = DatabaseConnection.getConnection();
 
 	            PreparedStatement ps = connection.prepareStatement(sql);
 
-	            ResultSet rs = ps.executeQuery()
+	            ResultSet rs = ps.executeQuery();
 	    ) {
 
 	        while (rs.next()) {
@@ -58,66 +162,29 @@ public class DepartmentDAO {
 
 	        }
 
-	    }
+	    } catch (Exception e) {
 
-	    catch (SQLException e) {
 	        e.printStackTrace();
+
 	    }
 
 	    return departments;
 
 	}
 	
-	public Department findById(int departmentId) {
+	public boolean update(Department department) {
 
-	    String sql = "SELECT department_id, department_name, department_code FROM departments WHERE department_id=?";
+	    String sql = """
+	            UPDATE departments
+	            SET department_name=?,
+	                department_code=?
+	            WHERE department_id=?
+	            """;
 
 	    try (
 	            Connection connection = DatabaseConnection.getConnection();
 
-	            PreparedStatement ps = connection.prepareStatement(sql)
-
-	    ) {
-
-	        ps.setInt(1, departmentId);
-
-	        try (ResultSet rs = ps.executeQuery()) {
-
-	            if (rs.next()) {
-
-	                Department department = new Department();
-
-	                department.setDepartmentId(rs.getInt("department_id"));
-
-	                department.setDepartmentName(rs.getString("department_name"));
-
-	                department.setDepartmentCode(rs.getString("department_code"));
-
-	                return department;
-	            }
-
-	        }
-
-	    }
-
-	    catch (SQLException e) {
-	        e.printStackTrace();
-	    }
-
-	    return null;
-
-	}
-	
-	public boolean update(Department department) {
-
-	    String sql = "UPDATE departments SET department_name=?, department_code=? WHERE department_id=?";
-
-	    try (
-
-	        Connection connection = DatabaseConnection.getConnection();
-
-	        PreparedStatement ps = connection.prepareStatement(sql)
-
+	            PreparedStatement ps = connection.prepareStatement(sql);
 	    ) {
 
 	        ps.setString(1, department.getDepartmentName());
@@ -126,14 +193,12 @@ public class DepartmentDAO {
 
 	        ps.setInt(3, department.getDepartmentId());
 
-	        int rows = ps.executeUpdate();
+	        return ps.executeUpdate() > 0;
 
-	        return rows > 0;
+	    } catch (Exception e) {
 
-	    }
-
-	    catch(SQLException e){
 	        e.printStackTrace();
+
 	    }
 
 	    return false;
@@ -142,26 +207,25 @@ public class DepartmentDAO {
 	
 	public boolean delete(int departmentId) {
 
-	    String sql = "DELETE FROM departments WHERE department_id=?";
+	    String sql = """
+	            DELETE FROM departments
+	            WHERE department_id=?
+	            """;
 
 	    try (
+	            Connection connection = DatabaseConnection.getConnection();
 
-	        Connection connection = DatabaseConnection.getConnection();
-
-	        PreparedStatement ps = connection.prepareStatement(sql)
-
+	            PreparedStatement ps = connection.prepareStatement(sql);
 	    ) {
 
 	        ps.setInt(1, departmentId);
 
-	        int rows = ps.executeUpdate();
+	        return ps.executeUpdate() > 0;
 
-	        return rows > 0;
+	    } catch (Exception e) {
 
-	    }
-
-	    catch(SQLException e){
 	        e.printStackTrace();
+
 	    }
 
 	    return false;
